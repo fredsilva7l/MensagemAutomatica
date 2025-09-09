@@ -41,14 +41,13 @@ async function connectToWhatsApp() {
         DisconnectReason.loggedOut;
       console.log("Conexão fechada, reconectando:", shouldReconnect);
 
-      if (shouldReconnect) {
-        connectToWhatsApp();
-      }
-    } else if (connection === "open") {
-      const jobEnviar = schedule.scheduleJob("45 21 * * *", enviarMensagemDia);
+      if (shouldReconnect) connectToWhatsApp();
+    }
+    if (connection === "open") {
+      const jobEnviar = schedule.scheduleJob("0 15 * * *", enviarMensagemDia);
 
       if (jobEnviar) {
-        console.log("Agendamento de envio configurado para 21:45");
+        console.log("Agendamento de envio configurado para 15:00");
       } else {
         console.error("Erro: Falha ao criar o agendamento de envio");
       }
@@ -63,34 +62,35 @@ async function enviarMensagemDia() {
   const mensagens = await carregarMensagens();
   const mensagemDoDia = mensagens.find((msg) => msg.data === dataAtual);
 
-  if (mensagemDoDia) {
-    console.log(`Enviando (${mensagemDoDia.diaSemana}) para ${targetNumber}`);
-
-    await sock.sendMessage(myNumber, {
-      text: "Função Iniciada com sucesso!",
-    });
-    await new Promise((resolve) => setTimeout(resolve, 10000));
-    console.log("Processo iniciado com sucesso!");
-
-    await sock.sendMessage(targetNumber, {
-      text: mensagemDoDia.mensagem,
-    });
-    await new Promise((resolve) => setTimeout(resolve, 10000));
-    console.log(`Mensagem de texto enviada: ${mensagemDoDia.mensagem}`);
-
-    await sock.sendMessage(targetNumber, {
-      text: mensagemDoDia.musica,
-    });
-    await new Promise((resolve) => setTimeout(resolve, 10000));
-    console.log(`Música enviada: ${mensagemDoDia.musica}`);
-
-    await sock.sendMessage(targetNumber, {
-      text: mensagemDoDia.link_musica,
-    });
-    console.log(`Link da música enviado: ${mensagemDoDia.link_musica}`);
-  } else {
+  if (!mensagemDoDia) {
     console.log(`Nenhuma mensagem encontrada no dia ${dataAtual}`);
+    return;
   }
+
+  console.log(`Enviando (${mensagemDoDia.diaSemana}) para ${targetNumber}`);
+
+  await sock.sendMessage(myNumber, {
+    text: "Função Iniciada com sucesso!",
+  });
+  await new Promise((resolve) => setTimeout(resolve, 10000));
+  console.log("Processo iniciado com sucesso!");
+
+  await sock.sendMessage(targetNumber, {
+    text: mensagemDoDia.mensagem,
+  });
+  await new Promise((resolve) => setTimeout(resolve, 10000));
+  console.log(`Mensagem de texto enviada: ${mensagemDoDia.mensagem}`);
+
+  await sock.sendMessage(targetNumber, {
+    text: mensagemDoDia.musica,
+  });
+  await new Promise((resolve) => setTimeout(resolve, 10000));
+  console.log(`Música enviada: ${mensagemDoDia.musica}`);
+
+  await sock.sendMessage(targetNumber, {
+    text: mensagemDoDia.link_musica,
+  });
+  console.log(`Link da música enviado: ${mensagemDoDia.link_musica}`);
 }
 
 async function carregarMensagens() {
